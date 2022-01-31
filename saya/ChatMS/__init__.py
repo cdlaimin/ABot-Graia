@@ -14,10 +14,9 @@ from graia.ariadne.event.message import GroupMessage
 from graia.scheduler.saya.schema import SchedulerSchema
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 
-from config import yaml_data, group_data
-
-from util.control import Permission, Interval
+from config import yaml_data
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 
 saya = Saya.current()
@@ -54,18 +53,16 @@ async def updateDict():
 
 
 @channel.use(
-    ListenerSchema(listening_events=[GroupMessage], decorators=[Permission.require()])
+    ListenerSchema(
+        listening_events=[GroupMessage],
+        decorators=[
+            Function.require("ChatMS"),
+            Permission.require(),
+            Interval.require(silent=True),
+        ],
+    )
 )
 async def main(group: Group, member: Member, message: MessageChain):
-
-    if (
-        yaml_data["Saya"]["ChatMS"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ChatMS" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if message.has(At):
         if message.getFirst(At).target == yaml_data["Basic"]["MAH"]["BotQQ"]:
             try:

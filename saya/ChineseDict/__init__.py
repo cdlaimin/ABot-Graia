@@ -9,9 +9,8 @@ from graia.ariadne.message.element import Plain, Image
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 from .page_screenshot import get_hans_screenshot
 
@@ -24,23 +23,17 @@ channel = Channel.current()
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[
-            Twilight(
-                {"head": FullMatch("词典"), "anything": WildcardMatch()}
-            )
+            Twilight({"head": FullMatch("词典"), "anything": WildcardMatch()})
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("ChineseDict"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def dict(group: Group, anything: WildcardMatch):
-
-    if (
-        yaml_data["Saya"]["ChineseDict"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ChineseDict" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anything.matched:
         dict_name = anything.result.asDisplay()
         try:

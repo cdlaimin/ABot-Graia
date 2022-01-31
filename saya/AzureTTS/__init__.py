@@ -18,9 +18,9 @@ from azure.cognitiveservices.speech import (
 )
 
 from database.db import reduce_gold
-from util.control import Permission, Interval
+from config import yaml_data, COIN_NAME
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -37,18 +37,14 @@ BASEPATH.mkdir(exist_ok=True)
                 {"head": FullMatch("/tts"), "anything": WildcardMatch(optional=True)}
             )
         ],
-        decorators=[Permission.require(), Interval.require(60)],
+        decorators=[
+            Function.require("AzureTTS"),
+            Permission.require(),
+            Interval.require(60),
+        ],
     )
 )
 async def azuretts(group: Group, member: Member, message: MessageChain, source: Source):
-
-    if (
-        yaml_data["Saya"]["AzureTTS"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "AzureTTS" in group_data[str(group.id)]["DisabledFunc"]:
-        return
 
     saying = message.asDisplay().split(" ", 3)
     if len(saying) != 4:

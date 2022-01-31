@@ -8,10 +8,9 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
 from util.TextModeration import text_moderation_async
+from util.control import Permission, Interval, Rest, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -28,19 +27,15 @@ channel = Channel.current()
                 }
             )
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require(30)],
+        decorators=[
+            Function.require("ChickEmoji"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(30),
+        ],
     )
 )
 async def fun_dict(group: Group, member: Member, anythings: WildcardMatch):
-
-    if (
-        yaml_data["Saya"]["ChickEmoji"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ChickEmoji" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anythings.matched:
 
         saying = anythings.result.asDisplay()

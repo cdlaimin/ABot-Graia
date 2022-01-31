@@ -8,9 +8,9 @@ from graia.ariadne.message.element import Plain, At, Image
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
+from config import yaml_data
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -27,19 +27,14 @@ channel = Channel.current()
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require(80)],
+        decorators=[
+            Function.require("ChickDict"),
+            Permission.require(),
+            Interval.require(80),
+        ],
     )
 )
 async def fun_dict(group: Group, member: Member, anything: WildcardMatch):
-
-    if (
-        yaml_data["Saya"]["ChickDict"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ChickDict" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if not anything.matched:
         await safeSendGroupMessage(group, MessageChain.create([Plain("用法：查梗 xxxxx")]))
     else:

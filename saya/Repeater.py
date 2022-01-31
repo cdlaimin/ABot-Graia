@@ -7,9 +7,9 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.element import Face, Image, Plain, At
 
-from config import yaml_data, group_data
-from util.control import Permission, Rest
+from config import yaml_data
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Rest, Function
 from util.TextModeration import text_moderation_async
 
 saya = Saya.current()
@@ -22,19 +22,14 @@ repdict = {}
 @channel.use(
     ListenerSchema(
         listening_events=[GroupMessage],
-        decorators=[Rest.rest_control(False), Permission.require()],
+        decorators=[
+            Function.require("Repeater"),
+            Rest.rest_control(False),
+            Permission.require(),
+        ],
     )
 )
 async def repeater(group: Group, message: MessageChain):
-
-    if (
-        yaml_data["Saya"]["Repeater"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Repeater" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     global repdict
     saying = message.asDisplay()
     ifpic = not message.has(Image)
@@ -64,19 +59,16 @@ async def repeater(group: Group, message: MessageChain):
 @channel.use(
     ListenerSchema(
         listening_events=[GroupMessage],
-        decorators=[Rest.rest_control(False), Permission.require()],
+        decorators=[
+            Function.require("Repeater"),
+            Rest.rest_control(False),
+            Permission.require(),
+        ],
     )
 )
 async def repeateron(group: Group, message: MessageChain):
 
-    if (
-        yaml_data["Saya"]["Repeater"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Repeater" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-    elif yaml_data["Saya"]["Repeater"]["Random"]["Disabled"]:
+    if yaml_data["Saya"]["Repeater"]["Random"]["Disabled"]:
         return
 
     saying = message.asDisplay()

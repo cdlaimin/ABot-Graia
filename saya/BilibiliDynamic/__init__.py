@@ -270,17 +270,15 @@ async def update_scheduled(app: Ariadne):
                 logger.info(f"[BiliBili推送] {up_name} 开播了 - {room_area} - {title}")
                 for groupid in sub_list[up_id]:
                     try:
-                        await safeSendGroupMessage(
+                        await app.sendGroupMessage(
                             groupid,
                             MessageChain.create(
-                                [
-                                    Plain(
-                                        f"本群订阅的UP {up_name}（{up_id}）在 {room_area} 开播啦 ！\n"
-                                    ),
-                                    Plain(title),
-                                    Image(url=cover_from_user),
-                                    Plain(f"\nhttps://live.bilibili.com/{room_id}"),
-                                ]
+                                Plain(
+                                    f"本群订阅的UP {up_name}（{up_id}）在 {room_area} 开播啦 ！\n"
+                                ),
+                                Plain(title),
+                                Image(url=cover_from_user),
+                                Plain(f"\nhttps://live.bilibili.com/{room_id}"),
                             ),
                         )
                         await asyncio.sleep(1)
@@ -298,11 +296,9 @@ async def update_scheduled(app: Ariadne):
                 logger.info(f"[BiliBili推送] {up_name} 已下播")
                 try:
                     for groupid in sub_list[up_id]:
-                        await safeSendGroupMessage(
+                        await app.sendGroupMessage(
                             groupid,
-                            MessageChain.create(
-                                [Plain(f"本群订阅的UP {up_name}（{up_id}）已下播！")]
-                            ),
+                            MessageChain.create(f"本群订阅的UP {up_name}（{up_id}）已下播！"),
                         )
                         await asyncio.sleep(1)
                 except UnknownTarget:
@@ -331,7 +327,7 @@ async def update_scheduled(app: Ariadne):
                     )
                     for groupid in sub_list[up_id]:
                         try:
-                            await safeSendGroupMessage(
+                            await app.sendGroupMessage(
                                 groupid,
                                 MessageChain.create(
                                     [

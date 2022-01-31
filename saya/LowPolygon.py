@@ -22,10 +22,10 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 
+from config import COIN_NAME
 from database.db import reduce_gold
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 
 saya = Saya.current()
@@ -50,7 +50,12 @@ WAITING = []
                 },
             )
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("LowPolygon"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def low_poly(
@@ -60,15 +65,6 @@ async def low_poly(
     args: ArgumentMatch,
     anythings1: WildcardMatch,
 ):
-
-    if (
-        yaml_data["Saya"]["LowPolygon"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "LowPolygon" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

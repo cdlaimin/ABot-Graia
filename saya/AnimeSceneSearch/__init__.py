@@ -14,9 +14,9 @@ from graia.ariadne.message.element import At, Plain, Image, Source
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, ElementMatch
 
 from database.db import reduce_gold
-from util.control import Permission, Interval
+from config import COIN_NAME, yaml_data
 from util.sendMessage import safeSendGroupMessage
-from config import COIN_NAME, yaml_data, group_data
+from util.control import Permission, Interval, Function
 
 from .draw import draw_tracemoe
 
@@ -79,19 +79,14 @@ saucenao_usage = None
                 }
             ),
         ],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("AnimeSceneSearch"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def anime_search(group: Group, member: Member, img: ElementMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["AnimeSceneSearch"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "AnimeSceneSearch" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )
@@ -220,19 +215,14 @@ async def anime_search(group: Group, member: Member, img: ElementMatch, source: 
                 }
             ),
         ],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("AnimeSceneSearch"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def saucenao(group: Group, member: Member, img: ElementMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["AnimeSceneSearch"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "AnimeSceneSearch" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

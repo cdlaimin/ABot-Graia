@@ -19,10 +19,10 @@ from graia.ariadne.message.element import At, Plain, Source, Image
 from graia.ariadne.event.message import FriendMessage, GroupMessage
 from graia.ariadne.message.parser.twilight import Twilight, ElementMatch, FullMatch
 
+from config import COIN_NAME, yaml_data
 from database.db import add_gold, reduce_gold
-from util.control import Interval, Permission
 from util.sendMessage import safeSendGroupMessage
-from config import COIN_NAME, yaml_data, group_data
+from util.control import Interval, Permission, Function
 
 from .certification import decrypt
 from .lottery_image import qrgen, qrdecode
@@ -53,19 +53,14 @@ else:
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("购买奖券")})],
-        decorators=[Permission.require()],
+        decorators=[
+            Function.require("Lottery"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def buy_lottery(group: Group, member: Member, source: Source):
-
-    if (
-        yaml_data["Saya"]["Lottery"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Lottery" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if await reduce_gold(str(member.id), 2):
         number = "".join(
             random.sample(string.digits + string.digits + string.digits, 24)
@@ -107,7 +102,11 @@ async def buy_lottery(group: Group, member: Member, source: Source):
                 {"head": FullMatch("兑换奖券"), "image": ElementMatch(Image, optional=True)}
             ),
         ],
-        decorators=[Permission.require()],
+        decorators=[
+            Function.require("Lottery"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def redeem_lottery(
@@ -115,14 +114,6 @@ async def redeem_lottery(
 ):
 
     if member.id in WAITING:
-        return
-
-    if (
-        yaml_data["Saya"]["Lottery"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Lottery" in group_data[str(group.id)]["DisabledFunc"]:
         return
 
     WAITING.append(member.id)
@@ -252,19 +243,14 @@ async def lo(app: Ariadne, friend: Friend):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("开奖查询")})],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("Lottery"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def q_lottery(group: Group):
-
-    if (
-        yaml_data["Saya"]["Lottery"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Lottery" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     lottery = LOTTERY
     period = str(lottery["period"] - 1)
     winner = lottery["lastweek"]["number"]

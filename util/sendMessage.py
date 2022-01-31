@@ -1,9 +1,10 @@
+import asyncio
 from typing import Optional, Union
 from graia.ariadne.context import ariadne_ctx
-from graia.ariadne.exception import UnknownTarget
 from graia.ariadne.model import BotMessage, Group
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain, Source
+from graia.ariadne.exception import UnknownTarget, UnknownError
 
 
 async def safeSendGroupMessage(
@@ -31,4 +32,11 @@ async def safeSendGroupMessage(
                 target, MessageChain.create(msg), quote=quote
             )
         except UnknownTarget:
-            return await app.sendGroupMessage(target, MessageChain.create(msg))
+            try:
+                return await app.sendGroupMessage(target, MessageChain.create(msg))
+            except UnknownError:
+                await asyncio.sleep(15)
+                try:
+                    return await app.sendGroupMessage(target, MessageChain.create(msg))
+                except UnknownError:
+                    await app.quitGroup(target)

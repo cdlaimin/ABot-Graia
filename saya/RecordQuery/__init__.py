@@ -17,9 +17,8 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 from .draw_record_image import AUTH, DATABASE, draw_r6
 
@@ -54,21 +53,16 @@ WAITING = []
                 }
             ),
         ],
-        decorators=[Permission.require, Interval.require(30)],
+        decorators=[
+            Function.require("RecordQuery"),
+            Permission.require,
+            Interval.require(30),
+        ],
     )
 )
 async def main(
     group: Group, member: Member, at: ElementMatch, name: WildcardMatch, source: Source
 ):
-
-    if (
-        yaml_data["Saya"]["RecordQuery"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "RecordQuery" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

@@ -131,7 +131,7 @@ async def funchelp(group: Group, func: WildcardMatch):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch(r"^[。\./]?help$|^帮助$|^菜单$")})],
-        decorators=[Permission.require()],
+        decorators=[Permission.require(), Interval.require(10)],
     )
 )
 async def help(group: Group):

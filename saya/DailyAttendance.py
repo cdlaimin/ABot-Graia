@@ -10,10 +10,10 @@ from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.event.message import GroupMessage, FriendMessage
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
-from util.control import Permission, Interval
+from config import COIN_NAME
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
 from database.db import sign, add_gold, all_sign_num
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -23,7 +23,7 @@ channel = Channel.current()
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("签到")})],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[Function.require("Sign"), Permission.require(), Interval.require()],
     )
 )
 async def main(group: Group, member: Member):
@@ -37,14 +37,6 @@ async def main(group: Group, member: Member):
         sign_text = f"今日签到成功！\n本次签到获得{COIN_NAME} {str(gold_add)} 个"
     else:
         sign_text = "今天你已经签到过了，不能贪心，凌晨4点以后再来吧！"
-
-    if (
-        yaml_data["Saya"]["Sign"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Sign" in group_data[str(group.id)]["DisabledFunc"]:
-        return
 
     now_localtime = time.strftime("%H:%M:%S", time.localtime())
     if "06:00:00" < now_localtime < "08:59:59":

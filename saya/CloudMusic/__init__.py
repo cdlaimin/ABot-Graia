@@ -16,10 +16,10 @@ from graia.ariadne.message.element import Plain, Image, Voice, Source
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, RegexMatch
 
 from database.db import reduce_gold
+from config import yaml_data, COIN_NAME
 from util.text2image import create_image
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -63,7 +63,12 @@ WAITING = []
         inline_dispatchers=[
             Twilight({"head": FullMatch("点歌"), "music_name": RegexMatch(r".*")})
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require(120)],
+        decorators=[
+            Function.require("CloudMusic"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(120),
+        ],
     )
 )
 async def sing(
@@ -72,15 +77,6 @@ async def sing(
     source: Source,
     music_name: RegexMatch,
 ):
-
-    if (
-        yaml_data["Saya"]["CloudMusic"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "CloudMusic" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

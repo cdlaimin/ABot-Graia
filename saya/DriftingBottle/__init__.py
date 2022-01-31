@@ -27,11 +27,11 @@ from graia.ariadne.message.parser.twilight import (
 
 from database.db import reduce_gold
 from util.text2image import create_image
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
 from util.TextModeration import text_moderation_async
+from util.control import Permission, Interval, Function
 from util.ImageModeration import image_moderation_async
-from config import yaml_data, group_data, user_black_list, save_config, COIN_NAME
+from config import yaml_data, user_black_list, save_config, COIN_NAME
 
 from .db import (
     get_bottle,
@@ -66,7 +66,11 @@ IMAGE_PATH.mkdir(exist_ok=True)
                 },
             )
         ],
-        decorators=[Permission.require(), Interval.require(30)],
+        decorators=[
+            Function.require("DriftingBottle"),
+            Permission.require(),
+            Interval.require(30),
+        ],
     )
 )
 async def throw_bottle_handler(
@@ -76,15 +80,6 @@ async def throw_bottle_handler(
     arg_pic: ArgumentMatch,
     anythings1: WildcardMatch,
 ):
-
-    if (
-        yaml_data["Saya"]["DriftingBottle"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DriftingBottle" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )
@@ -233,19 +228,14 @@ async def throw_bottle_handler(
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch(r"^(捡|打?捞)(漂流瓶|瓶子)$")})],
-        decorators=[Permission.require(), Interval.require(30)],
+        decorators=[
+            Function.require("DriftingBottle"),
+            Permission.require(),
+            Interval.require(30),
+        ],
     )
 )
 async def pick_bottle_handler(group: Group):
-
-    if (
-        yaml_data["Saya"]["DriftingBottle"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DriftingBottle" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     bottle = get_bottle()
 
     if bottle is None:
@@ -291,21 +281,16 @@ async def clear_bottle_handler(group: Group):
                 {"head": FullMatch("查漂流瓶"), "bottleid": WildcardMatch(optional=True)}
             )
         ],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("DriftingBottle"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def drifting_bottle_handler(
     group: Group, member: Member, bottleid: WildcardMatch
 ):
-
-    if (
-        yaml_data["Saya"]["DriftingBottle"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DriftingBottle" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if bottleid.matched and member.id == yaml_data["Basic"]["Permission"]["Master"]:
         bottle_id = int(bottleid.result.asDisplay())
         bottle = get_bottle_by_id(bottle_id)
@@ -383,21 +368,16 @@ def qrdecode(img):
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require(5)],
+        decorators=[
+            Function.require("DriftingBottle"),
+            Permission.require(),
+            Interval.require(5),
+        ],
     )
 )
 async def bottle_score_handler(
     group: Group, member: Member, message: MessageChain, anythings: WildcardMatch
 ):
-
-    if (
-        yaml_data["Saya"]["DriftingBottle"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DriftingBottle" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anythings.matched:
         try:
             saying = anythings.result.asDisplay().split(" ", 2)

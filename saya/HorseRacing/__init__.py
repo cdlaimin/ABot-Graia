@@ -14,10 +14,10 @@ from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.event.lifecycle import ApplicationShutdowned
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
-from util.control import Permission, Interval
+from config import yaml_data, COIN_NAME
 from database.db import reduce_gold, add_gold
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
+from util.control import Permission, Interval, Function
 
 from .gamedata import props, HorseStatus
 from .game import draw_game, throw_prop, run_game
@@ -50,19 +50,14 @@ async def horse_racing(group: Group):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("开始赛马")})],
-        decorators=[Permission.require(), Interval.require(30)],
+        decorators=[
+            Function.require("HorseRacing"),
+            Permission.require(),
+            Interval.require(30),
+        ],
     )
 )
 async def main(app: Ariadne, group: Group, member: Member):
-
-    if (
-        yaml_data["Saya"]["HorseRacing"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "HorseRacing" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )
@@ -84,7 +79,7 @@ async def main(app: Ariadne, group: Group, member: Member):
                         )
                         player_list = GROUP_GAME_PROCESS[group.id]["members"]
                         player_count = len(player_list)
-                        if 6 > player_count > 1:
+                        if 8 > player_count > 1:
                             GROUP_GAME_PROCESS[group.id]["status"] = "pre_start"
                             add_msg = "，发起者可发送“提前开始”来强制开始本场游戏"
                         else:
@@ -95,11 +90,11 @@ async def main(app: Ariadne, group: Group, member: Member):
                             MessageChain.create(
                                 At(waiter1_member.id),
                                 Plain(
-                                    f" 你已成功加入本轮游戏，当前共有 {player_count} / 6 人参与{add_msg}"
+                                    f" 你已成功加入本轮游戏，当前共有 {player_count} / 8 人参与{add_msg}"
                                 ),
                             ),
                         )
-                        if player_count >= 6:
+                        if player_count >= 8:
                             GROUP_GAME_PROCESS[group.id]["status"] = "running"
                             return True
                     else:
@@ -123,7 +118,7 @@ async def main(app: Ariadne, group: Group, member: Member):
                     GROUP_GAME_PROCESS[group.id]["members"].remove(waiter1_member.id)
                     player_list = GROUP_GAME_PROCESS[group.id]["members"]
                     player_count = len(player_list)
-                    if 6 > player_count > 1:
+                    if 8 > player_count > 1:
                         GROUP_GAME_PROCESS[group.id]["status"] = "pre_start"
                     else:
                         GROUP_GAME_PROCESS[group.id]["status"] = "waiting"
@@ -131,7 +126,7 @@ async def main(app: Ariadne, group: Group, member: Member):
                         group,
                         MessageChain.create(
                             At(waiter1_member.id),
-                            Plain(f" 你已退出本轮游戏，当前共有 {player_count} / 6 人参与"),
+                            Plain(f" 你已退出本轮游戏，当前共有 {player_count} / 8 人参与"),
                         ),
                     )
                 else:
@@ -173,7 +168,8 @@ async def main(app: Ariadne, group: Group, member: Member):
     async def waiter2(
         waiter2_group: Group, waiter2_member: Member, waiter2_message: MessageChain
     ):
-        return
+        if waiter2_member.id != 2948531755:
+            return
         if (
             waiter2_group.id == group.id
             and waiter2_member.id in GROUP_GAME_PROCESS[group.id]["members"]
@@ -413,7 +409,7 @@ async def main(app: Ariadne, group: Group, member: Member):
 
 
 @channel.use(ListenerSchema(listening_events=[ApplicationShutdowned]))
-async def groupDataInit():
+async def bot_restart():
     for game_group in GROUP_RUNING_LIST:
         if game_group in GROUP_GAME_PROCESS:
             for player in GROUP_GAME_PROCESS[game_group]["members"]:

@@ -7,9 +7,8 @@ from graia.ariadne.message.element import Plain, Image
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, RegexMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 from .Pornhub import PornhubStyleUtils
 from .Youtube import YoutubeStyleUtils
@@ -34,19 +33,15 @@ channel = Channel.current()
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch("5000兆 .* .*")})],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("StyleLogoGenerator"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def gosencho_handler(message: MessageChain, group: Group):
-
-    if (
-        yaml_data["Saya"]["StyleLogoGenerator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "StyleLogoGenerator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     await safeSendGroupMessage(
         group,
         await StylePictureGeneraterHandler.gosencho_en_hoshi_style_image_generator(
@@ -59,19 +54,15 @@ async def gosencho_handler(message: MessageChain, group: Group):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch("ph .* .*")})],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("StyleLogoGenerator"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def pornhub_handler(message: MessageChain, group: Group):
-
-    if (
-        yaml_data["Saya"]["StyleLogoGenerator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "StyleLogoGenerator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     await safeSendGroupMessage(
         group, await StylePictureGeneraterHandler.pornhub_style_image_generator(message)
     )
@@ -81,19 +72,15 @@ async def pornhub_handler(message: MessageChain, group: Group):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch("yt .* .*")})],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("StyleLogoGenerator"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def youtube_handler(message: MessageChain, group: Group):
-
-    if (
-        yaml_data["Saya"]["StyleLogoGenerator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "StyleLogoGenerator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     await safeSendGroupMessage(
         group, await StylePictureGeneraterHandler.youtube_style_image_generator(message)
     )

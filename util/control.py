@@ -21,7 +21,7 @@ from graia.scheduler.saya.schema import SchedulerSchema
 from graia.ariadne.message.element import Plain, Source
 from graia.ariadne.model import Friend, Member, MemberPerm
 
-from config import user_black_list, yaml_data
+from config import user_black_list, yaml_data, group_data
 
 from .sendMessage import safeSendGroupMessage
 
@@ -77,6 +77,29 @@ class Rest:
                 raise ExecutionStop()
 
         return Depend(sleep)
+
+
+# 用于控制功能开关的类
+class Function:
+    """
+    用于功能管理的类，不应该被实例化
+    """
+
+    def require(funcname: str) -> Depend:
+        def func_check(member: Member):
+            if member.id == yaml_data["Basic"]["Permission"]["Master"]:
+                pass
+            elif (
+                yaml_data["Saya"][funcname]["Disabled"]
+                and member.group.id == yaml_data["Basic"]["Permission"]["DebugGroup"]
+            ):
+                pass
+            elif funcname not in group_data[str(member.group.id)]["DisabledFunc"]:
+                pass
+            else:
+                raise ExecutionStop()
+
+        return Depend(func_check)
 
 
 class Permission:
@@ -174,7 +197,7 @@ class Interval:
         if not cls.lock:
             cls.lock = Lock()
         return cls.lock
-        
+
     @classmethod
     def require(
         cls,

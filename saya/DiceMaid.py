@@ -9,9 +9,8 @@ from graia.ariadne.event.message import Group, GroupMessage
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, RegexMatch
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -23,19 +22,14 @@ channel = Channel.current()
         inline_dispatchers=[
             Twilight({"head": RegexMatch(r"^\.r(\d+)?d?(\d+)?k?(\d+)?")})
         ],
-        decorators=[Permission.require(), Interval.require(5)],
+        decorators=[
+            Function.require("DiceMaid"),
+            Permission.require(),
+            Interval.require(5),
+        ],
     )
 )
 async def dice(group: Group, message: MessageChain):
-
-    if (
-        yaml_data["Saya"]["DiceMaid"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DiceMaid" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     saying = message.asDisplay()
 
     pattern = re.compile(r"^.r(?P<times>\d+)?d?(?P<maxvalue>\d+)?k?(?P<kiswhat>\d+)?")

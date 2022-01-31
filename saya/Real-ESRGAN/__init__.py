@@ -22,10 +22,10 @@ from graia.ariadne.message.parser.twilight import Twilight, ElementMatch, FullMa
 from database.db import reduce_gold
 from util.update_cos import UpdateCos
 from util.TimeTool import TimeRecorder
-from util.control import Permission, Interval
+from config import yaml_data, COIN_NAME
 from util.QRGeneration import QRcode_generation
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
+from util.control import Permission, Interval, Function
 
 
 MEMBER_RUNING_LIST = []
@@ -64,7 +64,11 @@ upsampler = RealESRGANer(
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require(120)],
+        decorators=[
+            Function.require("Real-ESRGAN"),
+            Permission.require(),
+            Interval.require(120),
+        ],
     )
 )
 async def waifu2(
@@ -73,15 +77,6 @@ async def waifu2(
     image: ElementMatch,
     source: Source,
 ):
-
-    if (
-        yaml_data["Saya"]["Real-ESRGAN"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Real-ESRGAN" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

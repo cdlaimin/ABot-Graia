@@ -11,9 +11,8 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 jieba.setLogLevel(20)
 
@@ -46,19 +45,15 @@ def chs2yin(s, 淫乱度=0.5):
         inline_dispatchers=[
             Twilight({"head": FullMatch("淫语"), "anythings": WildcardMatch()})
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("Yinglish"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def main(group: Group, anythings: WildcardMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["Yinglish"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Yinglish" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anythings.matched:
         saying = anythings.result.asDisplay()
         if len(saying) < 200:

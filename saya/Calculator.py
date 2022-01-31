@@ -9,9 +9,8 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 
 saya = Saya.current()
@@ -29,19 +28,14 @@ channel = Channel.current()
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("Calculator"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def calculator_main(group: Group, formula: WildcardMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["Calculator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Calculator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if formula.matched:
         expression = rep_str(formula.result.asDisplay())
         if len(expression) > 800:

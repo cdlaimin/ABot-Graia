@@ -12,9 +12,9 @@ from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Image, Plain, Voice
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
+from config import yaml_data
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 from .draw_bili_image import binfo_image_create
 
@@ -23,20 +23,14 @@ channel = Channel.current()
 
 
 @channel.use(
-    ListenerSchema(listening_events=[GroupMessage], decorators=[Permission.require()])
+    ListenerSchema(
+        listening_events=[GroupMessage],
+        decorators=[Function.require("BilibiliResolve"), Permission.require()],
+    )
 )
 async def bilibili_main(
     app: Ariadne, group: Group, member: Member, message: MessageChain
 ):
-
-    if (
-        yaml_data["Saya"]["BilibiliResolve"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "BilibiliResolve" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if message.has(Image) or message.has(Voice):
         return
 

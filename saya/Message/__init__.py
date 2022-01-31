@@ -7,9 +7,8 @@ from graia.broadcast.interrupt import InterruptControl
 from graia.ariadne.message.element import Plain, Image
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 
-from config import yaml_data, group_data
-from util.control import Interval, Permission
 from util.sendMessage import safeSendGroupMessage
+from util.control import Interval, Permission, Function
 
 
 saya = Saya.current()
@@ -21,18 +20,16 @@ HOME = Path(__file__).parent
 
 
 @channel.use(
-    ListenerSchema(listening_events=[GroupMessage], decorators=[Permission.require()])
+    ListenerSchema(
+        listening_events=[GroupMessage],
+        decorators=[
+            Function.require("Message"),
+            Permission.require(),
+            Interval.require(silent=True),
+        ],
+    )
 )
 async def az(group: Group, message: MessageChain):
-
-    if (
-        yaml_data["Saya"]["Message"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Message" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     saying = message.asDisplay()
     if saying == "草":
         await Interval.manual(5)

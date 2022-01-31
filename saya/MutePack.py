@@ -12,8 +12,8 @@ from graia.ariadne.message.element import Plain, AtAll
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
-from util.control import Interval
-from config import group_data, yaml_data
+from config import yaml_data
+from util.control import Interval, Function
 from util.sendMessage import safeSendGroupMessage
 
 saya = Saya.current()
@@ -35,19 +35,10 @@ t = r"(?=.*要)(?=.*禁)(?=.*言)(?=.*套)(?=.*餐)"
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch(r"我要禁言套餐")})],
-        decorators=[Interval.require()],
+        decorators=[Function.require("MutePack"), Interval.require()],
     )
 )
 async def random_mute(app: Ariadne, group: Group, member: Member):
-
-    if (
-        yaml_data["Saya"]["MutePack"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "MutePack" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if member.id in yaml_data["Basic"]["Permission"]["Admin"]:
         await safeSendGroupMessage(group, MessageChain.create([Plain("我不能这样做！")]))
     else:

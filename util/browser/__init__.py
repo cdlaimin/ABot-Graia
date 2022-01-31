@@ -16,7 +16,7 @@ _browser: Optional[Browser] = None
 async def init() -> Browser:
     global _browser
     browser = await async_playwright().start()
-    _browser = await browser.chromium.launch_persistent_context(
+    _browser = await browser.firefox.launch_persistent_context(
         user_data_dir,
         headless=True,
         args=[
@@ -34,19 +34,19 @@ async def get_browser() -> Browser:
 
 try:
     get_browser()
-    logger.info("Chromium Browser initialized")
+    logger.info("firefox Browser initialized")
 except Error as e:
     if str(e).startswith("Extension doesn't exist at"):
-        logger.warning("未找到适应版本的 Chromium，正在自动安装...")
-        os.system("playwright install chromium")
+        logger.warning("未找到适应版本的 firefox，正在自动安装...")
+        os.system("poetry run playwright install firefox")
         try:
             get_browser()
         except Error as e:
-            logger.error(f"Chromium 安装失败 {str(e)}，请手动执行 playwright install chromium 安装")
+            logger.error(f"firefox 安装失败 {str(e)}，请手动执行 poetry run playwright install firefox 安装")
             exit(1)
     else:
-        logger.error(f"Chromium 初始化失败 {str(e)}，未知错误")
+        logger.error(f"firefox 初始化失败 {str(e)}，未知错误")
         exit(1)
 except Exception as e:
-    logger.error(f"Chromium 初始化失败 {type(e)} {str(e)}，未知错误")
+    logger.error(f"firefox 初始化失败 {type(e)} {str(e)}，未知错误")
     exit(1)

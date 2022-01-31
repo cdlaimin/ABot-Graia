@@ -9,9 +9,8 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -28,19 +27,14 @@ channel = Channel.current()
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require()],
+        decorators=[
+            Function.require("CyberBlacktalk"),
+            Permission.require(),
+            Interval.require(),
+        ],
     )
 )
 async def what_are_you_saying(group: Group, member: Member, anything: WildcardMatch):
-
-    if (
-        yaml_data["Saya"]["CyberBlacktalk"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "CyberBlacktalk" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anything.matched:
         saying = anything.result.asDisplay()
         api_url = "https://lab.magiconch.com/api/nbnhhsh/guess"

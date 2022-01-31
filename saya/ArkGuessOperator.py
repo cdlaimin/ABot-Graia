@@ -14,9 +14,8 @@ from graia.ariadne.message.element import Plain, Source, Voice, At
 from graia.ariadne.message.parser.twilight import Twilight, RegexMatch
 
 from database.db import add_answer
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -30,19 +29,14 @@ RUNNING = {}
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"ark": RegexMatch(r"(明日)?方舟猜干员")})],
-        decorators=[Permission.require(), Interval.require(30)],
+        decorators=[
+            Function.require("ArkGuessOperator"),
+            Permission.require(),
+            Interval.require(30),
+        ],
     )
 )
 async def guess_operator(group: Group, source: Source):
-
-    if (
-        yaml_data["Saya"]["ArkGuessOperator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ArkGuessOperator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

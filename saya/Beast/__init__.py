@@ -6,10 +6,9 @@ from graia.ariadne.message.chain import MessageChain
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
 from util.TextModeration import text_moderation_async
+from util.control import Permission, Interval, Rest, Function
 
 from .beast import encode, decode
 
@@ -22,21 +21,19 @@ channel = Channel.current()
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[
-            Twilight({"head": FullMatch("/嗷"), "anything": WildcardMatch(optional=True)})
+            Twilight(
+                {"head": FullMatch("/嗷"), "anything": WildcardMatch(optional=True)}
+            )
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("Beast"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def main_encode(group: Group, anything: WildcardMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["Beast"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Beast" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anything.matched:
         try:
             msg = encode(anything.result.asDisplay())
@@ -58,21 +55,19 @@ async def main_encode(group: Group, anything: WildcardMatch, source: Source):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[
-            Twilight({"head": FullMatch("/呜"), "anything": WildcardMatch(optional=True)})
+            Twilight(
+                {"head": FullMatch("/呜"), "anything": WildcardMatch(optional=True)}
+            )
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("Beast"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def main_decode(group: Group, anything: WildcardMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["Beast"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Beast" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anything.matched:
         try:
             msg = decode(anything.result.asDisplay())

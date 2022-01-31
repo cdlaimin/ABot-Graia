@@ -17,7 +17,7 @@ from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardM
 
 from config import yaml_data, group_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Interval, Permission, Rest
+from util.control import Interval, Permission, Rest, Function
 
 
 saya = Saya.current()
@@ -35,19 +35,15 @@ FRAMES_PATH = Path(__file__).parent.joinpath("PetPetFrames")
         inline_dispatchers=[
             Twilight({"head": FullMatch("摸"), "arg1": WildcardMatch()})
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("PetPet"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def petpet_generator(message: MessageChain, group: Group):
-
-    if (
-        yaml_data["Saya"]["PetPet"]["Disabled"]
-        and not yaml_data["Saya"]["PetPet"]["CanAt"]
-    ):
-        return
-    elif "PetPet" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if message.has(At):
         await safeSendGroupMessage(
             group,
@@ -57,9 +53,7 @@ async def petpet_generator(message: MessageChain, group: Group):
         )
 
 
-@channel.use(
-    ListenerSchema(listening_events=[NudgeEvent])
-)
+@channel.use(ListenerSchema(listening_events=[NudgeEvent]))
 async def get_nudge(app: Ariadne, nudge: NudgeEvent):
 
     if nudge.group_id and nudge.supplicant != app.account:

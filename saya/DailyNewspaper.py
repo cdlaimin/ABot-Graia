@@ -16,7 +16,6 @@ from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
 from util.control import Permission
 from config import yaml_data, group_data
-from util.sendMessage import safeSendGroupMessage
 
 saya = Saya.current()
 channel = Channel.current()
@@ -84,9 +83,8 @@ async def send(app: Ariadne):
         if "DailyNewspaper" in group_data[str(group.id)]["DisabledFunc"]:
             continue
         try:
-            await safeSendGroupMessage(
-                group.id,
-                MessageChain.create([Plain(group.name), Image(data_bytes=paperimg)]),
+            await app.sendMessage(
+                group, MessageChain.create(Image(data_bytes=paperimg))
             )
         except Exception as err:
             await app.sendFriendMessage(

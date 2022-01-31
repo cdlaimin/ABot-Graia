@@ -17,9 +17,8 @@ from graia.ariadne.message.element import At, Plain, Image
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, RegexMatch
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 from database.usertalk import get_user_talk, get_group_talk
 
 saya = Saya.current()
@@ -38,7 +37,11 @@ RUNNING_LIST = []
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": RegexMatch(r"^查看(个人|本群)词云")})],
-        decorators=[Permission.require(), Interval.require(150)],
+        decorators=[
+            Function.require("WordCloud"),
+            Permission.require(),
+            Interval.require(150),
+        ],
     )
 )
 async def wordcloud(group: Group, member: Member, message: MessageChain):
@@ -48,15 +51,6 @@ async def wordcloud(group: Group, member: Member, message: MessageChain):
     match = pattern.match(message.asDisplay())
 
     if match:
-
-        if (
-            yaml_data["Saya"]["WordCloud"]["Disabled"]
-            and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-        ):
-            return
-        elif "WordCloud" in group_data[str(group.id)]["DisabledFunc"]:
-            return
-
         if RUNNING < 5:
             RUNNING += 1
             RUNNING_LIST.append(member.id)

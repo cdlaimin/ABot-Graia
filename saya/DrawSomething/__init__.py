@@ -6,6 +6,7 @@ import asyncio
 from pathlib import Path
 from graia.saya import Saya, Channel
 from graia.ariadne.app import Ariadne
+from graia.ariadne.exception import UnknownTarget
 from graia.broadcast.interrupt.waiter import Waiter
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.model import Friend, Group, Member
@@ -16,9 +17,9 @@ from graia.ariadne.event.lifecycle import ApplicationShutdowned
 from graia.ariadne.event.message import GroupMessage, FriendMessage
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from util.control import Permission, Interval
+from config import yaml_data, COIN_NAME
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
+from util.control import Permission, Interval, Function
 from database.db import add_answer, reduce_gold, add_gold
 
 
@@ -37,20 +38,14 @@ GROUP_GAME_PROCESS = {}
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("你画我猜")})],
-        decorators=[Permission.require(), Interval.require(60)],
+        decorators=[
+            Function.require("DrawSomething"),
+            Permission.require(),
+            Interval.require(60),
+        ],
     )
 )
 async def main(app: Ariadne, group: Group, member: Member, source: Source):
-
-    # 判断插件是否处于禁用状态
-    if (
-        yaml_data["Saya"]["DrawSomething"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "DrawSomething" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     # 判断用户是否正在游戏中
     if member.id in MEMBER_RUNING_LIST:
         return
@@ -63,15 +58,11 @@ async def main(app: Ariadne, group: Group, member: Member, source: Source):
             member.id,
             MessageChain.create([Plain(f"本消息仅用于测试私信是否可用，无需回复\n{time.time()}")]),
         )
-    except Exception:
+    except UnknownTarget:
         await safeSendGroupMessage(
             group,
             MessageChain.create(
-                [
-                    Plain(
-                        f"由于你未添加好友，暂时无法发起你画我猜，请自行添加 {yaml_data['Basic']['BotName']} 好友，用于发送题目"
-                    )
-                ]
+                f"由于你未添加好友，暂时无法发起你画我猜，请自行添加 {yaml_data['Basic']['BotName']} 好友，用于发送题目"
             ),
         )
         MEMBER_RUNING_LIST.remove(member.id)

@@ -12,9 +12,9 @@ from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.element import ForwardNode, Image, Plain, Forward
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
+from config import yaml_data
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -32,21 +32,17 @@ channel = Channel.current()
                 },
             )
         ],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("Pixiv"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def main(
     app: Ariadne, group: Group, member: Member, tag1: WildcardMatch, tag2: WildcardMatch
 ):
-
-    if (
-        yaml_data["Saya"]["Pixiv"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Pixiv" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if yaml_data["Saya"]["Pixiv"]["san"] == "r18":
         san = 6
     elif yaml_data["Saya"]["Pixiv"]["san"] == "r16":
@@ -61,7 +57,9 @@ async def main(
             else tag2.result.getFirst(Plain).text
         )
         async with httpx.AsyncClient() as client:
-            r = await client.get(f"http://a60.one:404/get/tags/{tag}?num=5&san={san}")
+            r = await client.get(
+                f"http://api.a60.one:404/get/tags/{tag}?num=5&san={san}"
+            )
             res = r.json()
         if res.get("code", False) == 200:
             if yaml_data["Saya"]["Pixiv"]["Forward"]:
@@ -144,7 +142,7 @@ async def main(
             )
     else:
         async with httpx.AsyncClient() as client:
-            r = await client.get(f"http://a60.one:404/?num=5&san={san}")
+            r = await client.get(f"http://api.a60.one:404/?num=5&san={san}")
             res = r.json()
         if res.get("code", False) == 200:
             if yaml_data["Saya"]["Pixiv"]["Forward"]:

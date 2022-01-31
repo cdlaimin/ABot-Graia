@@ -2,6 +2,7 @@ import asyncio
 
 from datetime import datetime
 from graia.saya import Saya, Channel
+from graia.ariadne.app import Ariadne
 from graia.ariadne.model import Group, Member
 from graia.ariadne.message.element import At, Plain
 from graia.broadcast.interrupt.waiter import Waiter
@@ -13,9 +14,8 @@ from graia.scheduler.saya.schema import SchedulerSchema
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, WildcardMatch
 
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 from .time_parser import time_parser
 from .db import (
@@ -34,10 +34,10 @@ inc = InterruptControl(bcc)
 
 
 @channel.use(SchedulerSchema(every_custom_seconds(10)))
-async def scheduler():
+async def scheduler(app: Ariadne):
     for thing in get_undone_reminder():
         try:
-            await safeSendGroupMessage(
+            await app.sendGroupMessage(
                 thing.group,
                 MessageChain.create(
                     At(thing.member),
@@ -54,19 +54,14 @@ async def scheduler():
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("定时提醒")})],
-        decorators=[Permission().require(), Interval().require()],
+        decorators=[
+            Function.require("Reminder"),
+            Permission().require(),
+            Interval().require(),
+        ],
     )
 )
 async def get_reminder(group: Group, member: Member):
-
-    if (
-        yaml_data["Saya"]["Reminder"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Reminder" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     reminders = get_all_reminder(member.id)
     if len(reminders) == 0:
         msg = "你没有创建需要提醒的内容，如需创建请发送“新建提醒”"
@@ -90,19 +85,14 @@ async def get_reminder(group: Group, member: Member):
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("新建提醒")})],
-        decorators=[Permission().require(), Interval().require()],
+        decorators=[
+            Function.require("Reminder"),
+            Permission().require(),
+            Interval().require(),
+        ],
     )
 )
 async def main(group: Group, member: Member):
-
-    if (
-        yaml_data["Saya"]["Reminder"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Reminder" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )
@@ -173,19 +163,14 @@ async def main(group: Group, member: Member):
                 {"head": FullMatch("删除提醒"), "anything": WildcardMatch(optional=True)}
             )
         ],
-        decorators=[Permission().require(), Interval().require()],
+        decorators=[
+            Function.require("Reminder"),
+            Permission().require(),
+            Interval().require(),
+        ],
     )
 )
 async def del_reminder(group: Group, member: Member, anything: WildcardMatch):
-
-    if (
-        yaml_data["Saya"]["Reminder"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Reminder" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if anything.matched:
         say = anything.result.asDisplay()
         if say.isdigit():

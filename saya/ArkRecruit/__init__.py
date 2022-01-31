@@ -18,9 +18,8 @@ from graia.ariadne.message.parser.twilight import (
 )
 
 from util.ocr import OCR
-from config import yaml_data, group_data
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
+from util.control import Permission, Interval, Function
 
 from .data import recruit_data
 from .recruit_calc import calculate
@@ -47,7 +46,11 @@ known_tags.update(("资深干员", "高级资深干员"))
                 }
             )
         ],
-        decorators=[Permission.require(), Interval.require(120)],
+        decorators=[
+            Function.require("ArkRecruit"),
+            Permission.require(),
+            Interval.require(120),
+        ],
     )
 )
 async def recruit(
@@ -56,15 +59,6 @@ async def recruit(
     image: ElementMatch,
     source: Source,
 ):
-
-    if (
-        yaml_data["Saya"]["ArkRecruit"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "ArkRecruit" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

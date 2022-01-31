@@ -15,10 +15,10 @@ from acrcloud.recognizer import ACRCloudRecognizer, ACRCloudRecognizeType
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch, RegexMatch
 
 from database.db import reduce_gold
+from config import COIN_NAME, yaml_data
 from util.text2image import create_image
-from util.control import Permission, Interval
 from util.sendMessage import safeSendGroupMessage
-from config import COIN_NAME, yaml_data, group_data
+from util.control import Permission, Interval, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -53,19 +53,14 @@ WAITING = []
         inline_dispatchers=[
             Twilight({"head": FullMatch("识曲"), "operate": RegexMatch(r"原曲|哼唱")})
         ],
-        decorators=[Permission.require(), Interval.require(30)],
+        decorators=[
+            Function.require("VoiceMusicRecognition"),
+            Permission.require(),
+            Interval.require(30),
+        ],
     )
 )
 async def main(group: Group, member: Member, operate: RegexMatch, source: Source):
-
-    if (
-        yaml_data["Saya"]["VoiceMusicRecognition"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "VoiceMusicRecognition" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     @Waiter.create_using_function(
         listening_events=[GroupMessage], using_decorators=[Permission.require()]
     )

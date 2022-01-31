@@ -396,7 +396,7 @@
     },
     "转账": {
       "instruction": "转账功能，可以向他人赠送自己的$COIN_NAME",
-      "usage": "发送指令：\n转账 @ABot 15",
+      "usage": "发送指令：\n赠送$COIN_NAME @ABot 15",
       "options": "可以向他人赠送自己的$COIN_NAME，限值 1-1000以内",
       "example": "赠送$COIN_NAME @ABot 15"
     },

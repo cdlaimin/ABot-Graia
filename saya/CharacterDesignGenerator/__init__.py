@@ -10,10 +10,9 @@ from graia.ariadne.message.element import Image, Plain, Source
 from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
-from config import yaml_data, group_data
 from util.text2image import create_image
 from util.sendMessage import safeSendGroupMessage
-from util.control import Permission, Interval, Rest
+from util.control import Permission, Interval, Rest, Function
 
 saya = Saya.current()
 channel = Channel.current()
@@ -27,19 +26,15 @@ Designs = json.loads(
     ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[Twilight({"head": FullMatch("查看人设")})],
-        decorators=[Permission.require(), Rest.rest_control(), Interval.require()],
+        decorators=[
+            Function.require("CharacterDesignGenerator"),
+            Permission.require(),
+            Rest.rest_control(),
+            Interval.require(),
+        ],
     )
 )
 async def rand_designs(group: Group, member: Member, source: Source):
-
-    if (
-        yaml_data["Saya"]["CharacterDesignGenerator"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "CharacterDesignGenerator" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     msg = "你的人设：\n"
     for type in get_rand(member.id, group.id):
         msg += f"{type[0]}：{type[1]}\n"

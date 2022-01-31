@@ -12,9 +12,9 @@ from graia.ariadne.message.parser.twilight import (
     ArgumentMatch,
 )
 
-from util.control import Permission, Interval
+from config import COIN_NAME
 from util.sendMessage import safeSendGroupMessage
-from config import yaml_data, group_data, COIN_NAME
+from util.control import Permission, Interval, Function
 from database.db import reduce_gold, add_gold, trans_all_gold
 
 saya = Saya.current()
@@ -34,7 +34,11 @@ channel = Channel.current()
                 },
             )
         ],
-        decorators=[Permission.require(), Interval.require(5)],
+        decorators=[
+            Function.require("Transfer"),
+            Permission.require(),
+            Interval.require(5),
+        ],
     )
 )
 async def adminmain(
@@ -45,15 +49,6 @@ async def adminmain(
     anythings1: WildcardMatch,
     arg1: ArgumentMatch,
 ):
-
-    if (
-        yaml_data["Saya"]["Transfer"]["Disabled"]
-        and group.id != yaml_data["Basic"]["Permission"]["DebugGroup"]
-    ):
-        return
-    elif "Transfer" in group_data[str(group.id)]["DisabledFunc"]:
-        return
-
     if not at1.matched:
         await safeSendGroupMessage(
             group, MessageChain.create([Plain("请at需要赠送的对象")]), quote=source
