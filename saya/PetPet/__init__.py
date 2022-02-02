@@ -38,7 +38,7 @@ FRAMES_PATH = Path(__file__).parent.joinpath("PetPetFrames")
         decorators=[
             Function.require("PetPet"),
             Permission.require(),
-            Rest.rest_control(),
+            Rest.rest_control(zzzz=False),
             Interval.require(),
         ],
     )

@@ -43,18 +43,14 @@ def draw(recruit_info):
     if not i:
         return
 
-    logger.debug(f"为你找到以下可用的招募方案：\n{''.join([t[0] for t in text_list])}")
+    logger.debug("".join([t[0] for t in text_list]))
 
-    text_x, text_y = font.getsize_multiline(
-        f"为你找到以下可用的招募方案：\n\n{''.join([t[0] for t in text_list])}"
-    )
-    text_x = max(text_x, 392)
+    text_x, text_y = font.getsize_multiline("".join([t[0] for t in text_list]))
 
-    img = Image.new("RGB", (text_x + 20, text_y + 20), (235, 235, 235))
+    img = Image.new("RGB", (text_x + 20, text_y + 30), (235, 235, 235))
     draw = ImageDraw.Draw(img)
-    draw.text((10, 10), "为你找到以下可用的招募方案：", (33, 33, 33), font=font28)
     h = 26
-    i = 2
+    i = 0
     for tags, operators, rank in recruit_info:
         try:
             r = operators[0][1]
@@ -65,7 +61,7 @@ def draw(recruit_info):
             if rank == 0.5:
                 rank = 0
             draw.text(
-                (10, 4 + (h * i)),
+                (10, 10 + (h * i)),
                 f"{tag} ★" if len(operators) == 1 else tag,
                 (33, 33, 33),
                 # tag_color[rank],

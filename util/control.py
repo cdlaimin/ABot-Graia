@@ -87,13 +87,13 @@ class Function:
 
     def require(funcname: str) -> Depend:
         def func_check(member: Member):
-            if member.id == yaml_data["Basic"]["Permission"]["Master"]:
-                pass
-            elif (
-                yaml_data["Saya"][funcname]["Disabled"]
-                and member.group.id == yaml_data["Basic"]["Permission"]["DebugGroup"]
+            if (
+                member.id == yaml_data["Basic"]["Permission"]["Master"]
+                or member.group.id == yaml_data["Basic"]["Permission"]["DebugGroup"]
             ):
                 pass
+            elif yaml_data["Saya"][funcname]["Disabled"]:
+                raise ExecutionStop()
             elif funcname not in group_data[str(member.group.id)]["DisabledFunc"]:
                 pass
             else:

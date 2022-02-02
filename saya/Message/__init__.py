@@ -25,7 +25,6 @@ HOME = Path(__file__).parent
         decorators=[
             Function.require("Message"),
             Permission.require(),
-            Interval.require(silent=True),
         ],
     )
 )

@@ -58,7 +58,6 @@ async def updateDict():
         decorators=[
             Function.require("ChatMS"),
             Permission.require(),
-            Interval.require(silent=True),
         ],
     )
 )
