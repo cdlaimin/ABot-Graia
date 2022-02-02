@@ -36,9 +36,8 @@ channel = Channel.current()
 )
 async def what_are_you_saying(group: Group, member: Member, anything: WildcardMatch):
     if anything.matched:
-        saying = anything.result.asDisplay()
         api_url = "https://lab.magiconch.com/api/nbnhhsh/guess"
-        api_data = {"text": saying[1]}
+        api_data = {"text": anything.result.asDisplay()}
         api_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/51.0.2704.103 Safari/537.36"
@@ -48,7 +47,7 @@ async def what_are_you_saying(group: Group, member: Member, anything: WildcardMa
         tb = json.loads(ta)
         if len(tb) == 0:
             return await safeSendGroupMessage(
-                group, MessageChain.create("用法：能不能好好说话 [需要翻译的简写]")
+                group, MessageChain.create("用法：能不能好好说话 <需要翻译的简写>")
             )
 
         msg = [At(member.id)]
@@ -74,5 +73,4 @@ async def what_are_you_saying(group: Group, member: Member, anything: WildcardMa
 
         await safeSendGroupMessage(group, MessageChain.create(msg))
     else:
-
-        await safeSendGroupMessage(group, MessageChain.create("用法：能不能好好说话 [需要翻译的简写]"))
+        await safeSendGroupMessage(group, MessageChain.create("用法：能不能好好说话 <需要翻译的简写>"))
