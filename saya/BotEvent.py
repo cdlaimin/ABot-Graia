@@ -144,7 +144,21 @@ async def accept(app: Ariadne, invite: BotInvitedJoinGroupRequestEvent):
     """
     被邀请入群
     """
-    if invite.groupId in group_list["white"]:
+    if invite.groupId in group_list["black"]:
+        await app.sendFriendMessage(
+            yaml_data["Basic"]["Permission"]["Master"],
+            MessageChain.create(
+                [
+                    Plain("收到邀请入群事件"),
+                    Plain(f"\n邀请者：{invite.supplicant} | {invite.nickname}"),
+                    Plain(f"\n群号：{invite.groupId}"),
+                    Plain(f"\n群名：{invite.groupName}"),
+                    Plain("\n该群为黑名单群，已拒绝加入"),
+                ]
+            ),
+        )
+        await invite.reject("该群已被拉黑")
+    elif invite.groupId in group_list["white"]:
         await app.sendFriendMessage(
             yaml_data["Basic"]["Permission"]["Master"],
             MessageChain.create(
@@ -261,10 +275,9 @@ async def get_BotJoinGroup(app: Ariadne, joingroup: BotJoinGroupEvent):
             await safeSendGroupMessage(
                 joingroup.group.id,
                 MessageChain.create(
-                    f"我是{yaml_data['Basic']['Permission']['MasterName']}"
-                    f"的机器人{yaml_data['Basic']['BotName']}，"
-                    f"如果有需要可以联系主人QQ”{yaml_data['Basic']['Permission']['Master']}“，"
-                    f"添加{yaml_data['Basic']['BotName']}好友后请私聊说明用途后即可拉进其他群，主人看到后会选择是否同意入群"
+                    f"我是 {yaml_data['Basic']['Permission']['MasterName']} "
+                    f"的机器人 {yaml_data['Basic']['BotName']}，"
+                    f"如果有需要可以联系主人QQ”{yaml_data['Basic']['Permission']['Master']}“"
                     f"\n{yaml_data['Basic']['BotName']}被群禁言后会自动退出该群。"
                     "\n发送 <菜单> 可以查看功能列表"
                     "\n拥有管理员以上权限可以开关功能"
@@ -282,6 +295,10 @@ async def get_BotKickGroup(app: Ariadne, kickgroup: BotLeaveEventKick):
         group_list["white"].remove(kickgroup.group.id)
     except Exception:
         pass
+    try:
+        group_list["black"].append(kickgroup.group.id)
+    except Exception:
+        pass
     save_config()
 
     if yaml_data["Basic"]["Event"]["KickGroup"]:
@@ -292,7 +309,7 @@ async def get_BotKickGroup(app: Ariadne, kickgroup: BotLeaveEventKick):
                     "收到被踢出群聊事件"
                     f"\n群号：{kickgroup.group.id}"
                     f"\n群名：{kickgroup.group.name}"
-                    "\n已移出白名单"
+                    "\n已移出白名单，并加入黑名单"
                 ),
             )
 
@@ -316,7 +333,7 @@ async def get_BotLeaveEventActive(app: Ariadne, events: BotLeaveEventActive):
                     "收到主动退出群聊事件"
                     f"\n群号：{events.group.id}"
                     f"\n群名：{events.group.name}"
-                    "\n已移出白名单"
+                    "\n已移出白名单，并加入黑名单"
                 ),
             )
 
@@ -350,6 +367,13 @@ async def get_BotMuteGroup(app: Ariadne, group: Group, mute: BotMuteEvent):
     """
     try:
         group_list["white"].remove(group.id)
+    except Exception:
+        pass
+    try:
+        group_list["black"].append(group.id)
+    except Exception:
+        pass
+    try:
         user_list["black"].append(mute.operator.id)
     except Exception:
         pass
@@ -361,7 +385,7 @@ async def get_BotMuteGroup(app: Ariadne, group: Group, mute: BotMuteEvent):
                 qq,
                 MessageChain.create(
                     [
-                        Plain("收到禁言事件，已退出该群，并移出白名单"),
+                        Plain("收到禁言事件，已退出该群并拉黑操作者"),
                         Plain(f"\n群号：{group.id}"),
                         Plain(f"\n群名：{group.name}"),
                         Plain(f"\n操作者：{mute.operator.name} | {mute.operator.id}"),

@@ -74,9 +74,7 @@ async def main(app: Ariadne, group: Group, member: Member):
                     )
                 else:
                     if await reduce_gold(str(waiter1_member.id), 5):
-                        GROUP_GAME_PROCESS[group.id]["members"].append(
-                            waiter1_member.id
-                        )
+                        GROUP_GAME_PROCESS[group.id]["members"].append(waiter1_member.id)
                         player_list = GROUP_GAME_PROCESS[group.id]["members"]
                         player_count = len(player_list)
                         if 8 > player_count > 1:
@@ -193,25 +191,25 @@ async def main(app: Ariadne, group: Group, member: Member):
                         list(GROUP_GAME_PROCESS[group.id]["data"]["player"].keys())
                     )
                     if (
-                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget][
-                            "status"
-                        ]["effect"]
+                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget]["status"][
+                            "effect"
+                        ]
                         == HorseStatus.Shield
                     ):
                         await safeSendGroupMessage(
                             group,
                             MessageChain.create(
                                 At(waiter2_member.id),
-                                Plain(
-                                    " 你对 ", At(traget), f" 使用了 {prop}，但是该马匹获得了护盾，无法生效"
-                                ),
+                                Plain(" 你对 "),
+                                At(traget),
+                                Plain(f" 使用了 {prop}，但是该马匹获得了护盾，无法生效"),
                             ),
                         )
                         return
                     elif (
-                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget][
-                            "status"
-                        ]["effect"]
+                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget]["status"][
+                            "effect"
+                        ]
                         == HorseStatus.Death
                     ):
                         await safeSendGroupMessage(
@@ -230,9 +228,9 @@ async def main(app: Ariadne, group: Group, member: Member):
                 elif result.group(1) == "使用":
                     traget = waiter2_member.id
                     if (
-                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget][
-                            "status"
-                        ]["effect"]
+                        GROUP_GAME_PROCESS[group.id]["data"]["player"][traget]["status"][
+                            "effect"
+                        ]
                         == HorseStatus.Death
                     ):
                         await safeSendGroupMessage(
@@ -377,9 +375,7 @@ async def main(app: Ariadne, group: Group, member: Member):
     # 结束游戏
     for player, data in GROUP_GAME_PROCESS[group.id]["data"]["player"].items():
         if data["score"] >= 100:
-            GROUP_GAME_PROCESS[group.id]["data"]["player"][player].update(
-                {"score": 102}
-            )
+            GROUP_GAME_PROCESS[group.id]["data"]["player"][player].update({"score": 102})
     await asyncio.sleep(3)
     await safeSendGroupMessage(
         group,

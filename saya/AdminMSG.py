@@ -21,7 +21,14 @@ from util.text2image import create_image
 from util.control import Rest, Permission
 from database.db import add_gold, give_all_gold
 from util.sendMessage import safeSendGroupMessage
-from config import save_config, yaml_data, group_list, user_black_list, COIN_NAME
+from config import (
+    save_config,
+    yaml_data,
+    group_list,
+    user_black_list,
+    group_black_list,
+    COIN_NAME,
+)
 
 from .AdminConfig import funcList
 
@@ -73,9 +80,7 @@ async def all_recharge(app: Ariadne, friend: Friend, anything: WildcardMatch):
     ListenerSchema(
         listening_events=[FriendMessage],
         inline_dispatchers=[
-            Twilight(
-                {"head": FullMatch("充值"), "anything": WildcardMatch(optional=True)}
-            )
+            Twilight({"head": FullMatch("充值"), "anything": WildcardMatch(optional=True)})
         ],
     )
 )
@@ -99,9 +104,7 @@ async def echarge(app: Ariadne, friend: Friend, anything: WildcardMatch):
     ListenerSchema(
         listening_events=[FriendMessage],
         inline_dispatchers=[
-            Twilight(
-                {"head": FullMatch("公告"), "anything": WildcardMatch(optional=True)}
-            )
+            Twilight({"head": FullMatch("公告"), "anything": WildcardMatch(optional=True)})
         ],
     )
 )
@@ -130,7 +133,7 @@ async def Announcement(app: Ariadne, friend: Friend, anything: WildcardMatch):
                         yaml_data["Basic"]["Permission"]["Master"],
                         MessageChain.create([Plain(f"{group.id} 的公告发送失败\n{err}")]),
                     )
-                await asyncio.sleep(random.uniform(3, 5))
+                await asyncio.sleep(random.uniform(2, 4))
         tt = time.time()
         times = str(tt - ft)
         await app.sendFriendMessage(
@@ -279,6 +282,70 @@ async def fremove_block_user(app: Ariadne, friend: Friend, userid: WildcardMatch
 
 @channel.use(
     ListenerSchema(
+        listening_events=[FriendMessage],
+        inline_dispatchers=[
+            Twilight(
+                {
+                    "head": FullMatch("拉黑群"),
+                    "groupid": WildcardMatch(optional=True),
+                }
+            )
+        ],
+    )
+)
+async def fadd_group_black(app: Ariadne, friend: Friend, groupid: WildcardMatch):
+    Permission.manual(friend, Permission.MASTER)
+    if groupid.matched:
+        say = groupid.result.asDisplay()
+        if say.isdigit():
+            if int(say) in group_black_list:
+                await app.sendFriendMessage(friend, MessageChain.create("该群已在黑名单中"))
+            else:
+                group_black_list.append(int(say))
+                save_config()
+                await app.sendFriendMessage(friend, MessageChain.create("成功将该群加入黑名单"))
+                try:
+                    await app.quitGroup(int(say))
+                    await app.sendFriendMessage(friend, MessageChain.create("已退出该群"))
+                except Exception as e:
+                    await app.sendFriendMessage(
+                        friend, MessageChain.create(f"退出群失败 {type(e)}")
+                    )
+        else:
+            await app.sendFriendMessage(friend, MessageChain.create("群号仅可为数字"))
+    else:
+        await app.sendFriendMessage(friend, MessageChain.create("未输入群号"))
+
+
+@channel.use(
+    ListenerSchema(
+        listening_events=[FriendMessage],
+        inline_dispatchers=[
+            Twilight(
+                {"head": FullMatch("取消拉黑群"), "groupid": WildcardMatch(optional=True)}
+            )
+        ],
+    )
+)
+async def fremove_group_black(app: Ariadne, friend: Friend, groupid: WildcardMatch):
+    Permission.manual(friend, Permission.MASTER)
+    if groupid.matched:
+        say = groupid.result.asDisplay()
+        if say.isdigit():
+            if int(say) not in group_black_list:
+                await app.sendFriendMessage(friend, MessageChain.create("该群未在黑名单中"))
+            else:
+                group_black_list.remove(int(say))
+                save_config()
+                await app.sendFriendMessage(friend, MessageChain.create("成功将该群移出黑名单"))
+        else:
+            await app.sendFriendMessage(friend, MessageChain.create("群号仅可为数字"))
+    else:
+        await app.sendFriendMessage(friend, MessageChain.create("未输入群号"))
+
+
+@channel.use(
+    ListenerSchema(
         listening_events=[GroupMessage],
         inline_dispatchers=[
             Twilight(
@@ -407,15 +474,11 @@ async def group_card_fix(app: Ariadne, friend: Friend):
         else:
             await app.sendFriendMessage(
                 friend,
-                MessageChain.create(
-                    [Plain(f"群 {group.name}（{group.id}）名片修改失败，请检查后重试")]
-                ),
+                MessageChain.create([Plain(f"群 {group.name}（{group.id}）名片修改失败，请检查后重试")]),
             )
             await asyncio.sleep(0.5)
             break
-    await app.sendFriendMessage(
-        friend, MessageChain.create([Plain(f"共完成 {i} 个群的名片修改。")])
-    )
+    await app.sendFriendMessage(friend, MessageChain.create([Plain(f"共完成 {i} 个群的名片修改。")]))
 
 
 @channel.use(

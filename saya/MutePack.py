@@ -1,7 +1,5 @@
 import random
 
-from time import strftime, gmtime
-
 from loguru import logger
 from graia.saya import Saya, Channel
 from graia.ariadne.app import Ariadne
@@ -13,6 +11,7 @@ from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.ariadne.message.parser.twilight import Twilight, FullMatch
 
 from config import yaml_data
+from util.TimeTool import calc_time_total
 from util.control import Interval, Function
 from util.sendMessage import safeSendGroupMessage
 
@@ -45,7 +44,7 @@ async def random_mute(app: Ariadne, group: Group, member: Member):
         time = random.randint(60, yaml_data["Saya"]["MutePack"]["MaxTime"])
         multiple = random.randint(1, yaml_data["Saya"]["MutePack"]["MaxMultiple"])
         ftime = time * multiple
-        srtftime = strftime("%H:%M:%S", gmtime(ftime))
+        srtftime = calc_time_total(ftime * 1000)
         if (
             random.randint(1, yaml_data["Saya"]["MutePack"]["MaxJackpotProbability"])
             == yaml_data["Saya"]["MutePack"]["MaxJackpotProbability"]
@@ -63,11 +62,7 @@ async def random_mute(app: Ariadne, group: Group, member: Member):
                 await safeSendGroupMessage(
                     group,
                     MessageChain.create(
-                        [
-                            Plain(
-                                f"权限不足，无法使用！\n使用该功能{yaml_data['Basic']['BotName']}需要为管理"
-                            )
-                        ]
+                        [Plain(f"权限不足，无法使用！\n使用该功能{yaml_data['Basic']['BotName']}需要为管理")]
                     ),
                 )
         elif (
@@ -79,7 +74,7 @@ async def random_mute(app: Ariadne, group: Group, member: Member):
         ):
             try:
                 ftime = ftime * yaml_data["Saya"]["MutePack"]["MaxSuperDoubleMultiple"]
-                srtftime = strftime("%d:%H:%M:%S", gmtime(ftime))
+                srtftime = calc_time_total(ftime * 1000)
                 await app.muteMember(group, member, ftime)
                 await safeSendGroupMessage(
                     group,

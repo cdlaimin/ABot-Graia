@@ -52,7 +52,13 @@
    poetry install
    ```
 5. 修改 ABot 配置文件 `config/config.exp.yaml` 后**并重命名**为 `config/config.yaml`
-6. 启动 ABot
+
+6. 安装浏览器依赖
+   ```shell
+   poetry run playwright install firefox
+   poetry run playwright install-deps
+   ```
+7. 启动 ABot
    ```shell
    poetry run python main.py
    ```
@@ -66,8 +72,6 @@
 > 你也可能在执行 `poetry install` 的时候出现装不上 `graiax-silkcoder` 的情况，请自行解决编译环境问题
 
 **注意，请不要使用 `pip` 来安装依赖**
-
-如果你是 Windows 系统且你并不想自己配置 Python 环境，可以使用 [ABot WindowsRuntime](https://github.com/djkcyl/ABot-Resource/releases/tag/Windows-Runtime)
 
 **尽情享用吧~**
 
