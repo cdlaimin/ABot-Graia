@@ -119,6 +119,12 @@ async def Announcement(app: Ariadne, friend: Friend, anything: WildcardMatch):
             if yaml_data["Basic"]["Permission"]["Debug"]
             else await app.getGroupList()
         )
+        await app.sendFriendMessage(
+            friend,
+            MessageChain.create(
+                [Plain(f"正在开始发送公告，共有{len(groupList)}个群"), Image(data_bytes=image)]
+            ),
+        )
         for group in groupList:
             if group.id not in [885355617, 780537426, 474769367, 690211045, 855895642]:
                 try:
@@ -554,3 +560,73 @@ async def gset_open(group: Group, func: WildcardMatch):
             await safeSendGroupMessage(group, MessageChain.create("功能编号仅可为数字"))
     else:
         await safeSendGroupMessage(group, MessageChain.create("请输入功能编号"))
+
+
+@channel.use(
+    ListenerSchema(
+        listening_events=[GroupMessage],
+        inline_dispatchers=[Twilight({"head": FullMatch("/quit")})],
+        decorators=[Permission.require(Permission.GROUP_ADMIN)],
+    )
+)
+async def quit_group(app: Ariadne, group: Group):
+    await safeSendGroupMessage(group, MessageChain.create("正在退出群聊"))
+    await app.quitGroup(group.id)
+    await app.sendFriendMessage(
+        yaml_data["Basic"]["MAH"]["Friend"],
+        MessageChain.create(f"主动退出群聊 {group.name}({group.id})"),
+    )
+
+
+@channel.use(
+    ListenerSchema(
+        listening_events=[FriendMessage],
+        inline_dispatchers=[Twilight([FullMatch("发送协议")])],
+    )
+)
+async def user_agreement(app: Ariadne, friend: Friend):
+    Permission.manual(friend, Permission.MASTER)
+    image = await create_image(
+        "0. 本协议是 ABot（下统称“机器人”）默认服务协议。如果你看到了这句话，意味着你或你的群友应用默认协议，请注意。该协议仅会出现一次。\n"
+        "1. 邀请机器人、使用机器人服务和在群内阅读此协议视为同意并承诺遵守此协议，否则请持有管理员或管理员以上权限的用户使用 /quit 移出机器人。"
+        "邀请机器人入群请关闭群内每分钟消息发送限制的设置。\n"
+        "2. 不允许禁言、踢出或刷屏等机器人的不友善行为，这些行为将会提高机器人被制裁的风险。开关机器人功能请持有管理员或管理员以上权限的用户使用相应的指令来进行操作。"
+        "如果发生禁言、踢出等行为，机器人将拉黑该群。\n"
+        "3. 机器人默认邀请行为已事先得到群内同意，因而会自动同意群邀请。因擅自邀请而使机器人遭遇不友善行为时，邀请者因未履行预见义务而将承担连带责任。\n"
+        "4. 机器人在运行时将对群内信息进行监听及记录，并将这些信息保存在服务器内，以便功能正常使用。\n"
+        "5. 禁止将机器人用于违法犯罪行为。\n"
+        "6. 禁止使用机器人提供的功能来上传或试图上传任何可能导致的资源污染的内容，包括但不限于色情、暴力、恐怖、政治、色情、赌博等内容。如果发生该类行为，机器人将停止对该用户提供所有服务。\n"
+        "6. 对于设置敏感昵称等无法预见但有可能招致言论审查的行为，机器人可能会出于自我保护而拒绝提供服务。\n"
+        "7. 由于技术以及资金原因，我们无法保证机器人 100% 的时间稳定运行，可能不定时停机维护或遭遇冻结，对于该类情况恕不通知，敬请谅解。"
+        "临时停机的机器人不会有任何响应，故而不会影响群内活动，此状态下仍然禁止不友善行为。\n"
+        "8. 对于违反协议的行为，机器人将视情况终止对用户和所在群提供服务，并将不良记录共享给其他服务提供方。黑名单相关事宜可以与服务提供方协商，但最终裁定权在服务提供方。\n"
+        "9. 本协议内容随时有可能改动。\n"
+        "10. 机器人提供的服务是完全免费的，欢迎通过其他渠道进行支持。\n"
+        "11. 本服务最终解释权归服务提供方所有。",
+    )
+    groupList = (
+        [await app.getGroup(yaml_data["Basic"]["Permission"]["DebugGroup"])]
+        if yaml_data["Basic"]["Permission"]["Debug"]
+        else await app.getGroupList()
+    )
+    await app.sendFriendMessage(
+        friend,
+        MessageChain.create(
+            [Plain(f"正在开始发送公告，共有{len(groupList)}个群"), Image(data_bytes=image)]
+        ),
+    )
+    for group in groupList:
+        if group.id not in [885355617, 780537426, 474769367, 690211045, 855895642]:
+            try:
+                await safeSendGroupMessage(
+                    group.id,
+                    MessageChain.create(
+                        [Plain(f"公告：{str(group.name)}\n"), Image(data_bytes=image)]
+                    ),
+                )
+            except Exception as err:
+                await app.sendFriendMessage(
+                    yaml_data["Basic"]["Permission"]["Master"],
+                    MessageChain.create([Plain(f"{group.id} 的公告发送失败\n{err}")]),
+                )
+            await asyncio.sleep(random.uniform(2, 4))
