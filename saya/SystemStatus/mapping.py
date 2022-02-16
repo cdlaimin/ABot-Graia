@@ -10,7 +10,7 @@ zhfont1 = FontProperties(fname=font)
 
 
 async def get_mapping(cpu, ram, max_ram):
-    plt.figure(dpi=200, figsize=(12, 10))
+    plt.figure(dpi=96, figsize=(12, 10))
     plt.subplots_adjust(hspace=0.5)
 
     x_range = range(1, 301, 1)
@@ -33,5 +33,5 @@ async def get_mapping(cpu, ram, max_ram):
     plt.xticks([])
 
     bio = BytesIO()
-    plt.savefig(bio)
+    plt.savefig(bio, bbox_inches="tight", format="jpeg")
     return bio.getvalue()

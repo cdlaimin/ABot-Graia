@@ -307,6 +307,21 @@ async def get_BotJoinGroup(app: Ariadne, joingroup: BotJoinGroupEvent):
             )
             return await app.quitGroup(joingroup.group.id)
 
+        member_count = len(await app.getMemberList(joingroup.group))
+        if member_count < 15:
+            if joingroup.group.id not in group_list["white"]:
+                await safeSendGroupMessage(
+                    joingroup.group.id,
+                    MessageChain.create(
+                        f"当前群人数过少 ({member_count})，暂不加入，如有需要请联系 {yaml_data['Basic']['Permission']['Master']} 申请白名单"
+                    ),
+                )
+                await app.sendFriendMessage(
+                    yaml_data["Basic"]["Permission"]["Master"],
+                    MessageChain.create(f"该群人数过少 ({member_count})，正在退出"),
+                )
+                return await app.quitGroup(joingroup.group.id)
+
         if joingroup.group.id not in group_data:
             group_data[str(joingroup.group.id)] = groupInitData
             logger.info("已为该群初始化配置文件")

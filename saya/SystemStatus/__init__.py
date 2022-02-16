@@ -20,8 +20,8 @@ from util.sendMessage import safeSendGroupMessage
 
 from .mapping import get_mapping
 
-CPU_USAGE = [0] * 300
-MEM_USAGE = [0] * 300
+CPU_USAGE = [0] * 600
+MEM_USAGE = [0] * 600
 saya = Saya.current()
 channel = Channel.current()
 psutil.cpu_percent()
@@ -31,11 +31,11 @@ psutil.cpu_percent()
 async def update_scheduled():
     global CPU_USAGE, MEM_USAGE
 
-    if len(CPU_USAGE) == 300:
-        CPU_USAGE = CPU_USAGE[-299:]
+    if len(CPU_USAGE) == 600:
+        CPU_USAGE = CPU_USAGE[-599:]
     CPU_USAGE.append(psutil.cpu_percent())
-    if len(MEM_USAGE) == 300:
-        MEM_USAGE = MEM_USAGE[-299:]
+    if len(MEM_USAGE) == 600:
+        MEM_USAGE = MEM_USAGE[-599:]
     MEM_USAGE.append(int(psutil.virtual_memory().used / 1048576))
 
 
